@@ -58,7 +58,7 @@ def normalized_2d_gaussian(X, Y, sigma):
     return (2. * np.pi * sigma)**-1 * np.exp(-(X**2+Y**2)/(2*sigma))
 
 def initial_psi(X,Y):
-    return normalized_2d_gaussian(X,Y,0.05) * np.exp(1j*X*7)
+    return normalized_2d_gaussian(X,Y,0.5) * np.exp(1j*X*7)
 
 def create_cmap_from_csv(directory, cmap_name, n_bin=0):
     colors = np.genfromtxt(directory + cmap_name + '.csv', delimiter=',')
@@ -73,7 +73,7 @@ if __name__=='__main__':
 
     test_particle = rectangular_1_particle_domain((10,10),20,initial_psi)
 
-    t, psi = test_particle.time_evolution(np.linspace(0,10,100), 0)
+    t, psi = test_particle.time_evolution(np.linspace(0,50,100), 0)
 
     # for i in range(psi.shape[-1]):
     #     psi[:,:,i] = test_particle.laplacian(psi[:,:,i])
@@ -82,7 +82,7 @@ if __name__=='__main__':
     #print(peak_amplitude)
 
 
-    cyclic_cmap = create_cmap_from_csv("../CET_colormaps/", "CET-C2")
+    cyclic_cmap = create_cmap_from_csv("../CET_colormaps/", "CET-C7")
 
     fig, ax = plt.subplots()
     ax.imshow(np.zeros(psi.shape[:2]+(3,)))
@@ -104,4 +104,5 @@ if __name__=='__main__':
         return [title,im]
 
     ani = animation.FuncAnimation(fig=fig, func=update, frames=t.shape[0], interval=10)
-    plt.show()
+    ani.save(filename="./particle.mp4", writer="ffmpeg")
+    #plt.show()
