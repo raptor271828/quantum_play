@@ -13,29 +13,42 @@ m = 1
 class rectangular_1_particle_domain():
     def __init__(self, size, resolution, initial_psi_func):
 
+        ###initialize Real space ###
         self.width = size[0]
 
         self.height = size[1]
 
         self.num_X = np.floor(self.width*resolution)
-        self.X = np.linspace(-self.width/2, self.width/2, self.num_X)[:,np.newaxis]
+        self.X = np.linspace(-self.width/2, self.width/2, self.num_X).reshape((-1,1))
 
         self.num_Y = np.floor(self.height*resolution)
-        self.Y = np.linspace(-self.width/2, self.width/2, self.num_Y)[np.newaxis,:]
+        self.Y = np.linspace(-self.width/2, self.width/2, self.num_Y).reshape((1,-1))
 
         self.initial_psi = initial_psi(self.X, self.Y)
 
-        self.gx = np.linspace(0,resolution, self.num_X)
-        self.gx[self.num_X//2 + self.num_X % 2:] -= resolution
+        ###inintialize reciprocal space####
+        self.GX = np.linspace(0,resolution, self.num_X).reshape((-1,1))
+        self.GX[self.num_X//2 + self.num_X % 2:,0] -= resolution
+        self.GX_sort_indices = np.argsort(self.GX)
 
-        self.gy = np.linspace(0,resolution, self.num_Y)
-        self.gy[self.num_Y//2 + self.num_Y % 2:] -= resolution
+        self.GY = np.linspace(0,resolution, self.num_Y).reshape((1,-1))
+        self.GY[0,self.num_Y//2 + self.num_Y % 2:] -= resolution
+        self.GY_sort_indices = np.argsort(self.GY[0,:])
 
-        self.g_squared = self.gx[:,np.newaxis]**2 + self.gy[np.newaxis,:]**2
+        self.G_sqr = self.GX**2 + self.GY**2
+        print(self.G_sqr.shape)
 
     def laplacian(self, psi):
+        if (len(psi.shape) == 3) & (psi.shape[:2] == (self.num_X, self.num_Y)): #3rd dim is time
 
-        return np.fft.ifft2(self.g_squared*np.fft.fft2(psi))
+            return np.fft.ifft2(self.G_sqr[:,:,np.newaxis]*np.fft.fft2(psi, axes=(0,1)),axes=(0,1))
+
+        elif (len(psi.shape) == 2) & (psi.shape[:2] == (self.num_X, self.num_Y)): # no time dim
+
+            return np.fft.ifft2(self.G_sqr*np.fft.fft2(psi, axes=(0,1)),axes=(0,1))
+        else:
+            raise ValueError("psi shape is not 2d or 2d+time")
+#
 
     def d_psi_dt(self, psi, V): # -i * hbar**2/2m * laplacian (psi) * V * psi, assiming real_space_psi
         #print(np.abs(-1j * h_bar**2 * self.laplacian(psi) / (2*m) + V * psi).max())
