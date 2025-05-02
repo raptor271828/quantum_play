@@ -104,7 +104,7 @@ class rectangular_1_particle_domain():
                 t_index = np.argmin(np.abs(time_array-t))
                 return self.d_psi_dt(y.reshape((self.num_X,self.num_Y), order='C'), V[:,:,t_index]).reshape(-1, order='C')
 
-        ivp_out = solve_ivp(func_for_ode_solver,(time_array[0],time_array[-1]),self.initial_psi.reshape(-1, order='C'), t_eval=time_array)
+        ivp_out = solve_ivp(func_for_ode_solver,(time_array[0],time_array[-1]),self.initial_psi.reshape(-1, order='C'), t_eval=time_array, atol=1e-8, rtol=1e-5)
 
         return ivp_out['t'], ivp_out['y'].reshape((self.num_X,self.num_Y,-1))
 
@@ -137,14 +137,13 @@ def create_cmap_from_csv(directory, cmap_name, n_bin=0):
 
 if __name__=='__main__':
     file_name= input("name your video: ")
-
     #potential
 
 
     def initial_psi(X,Y):
         return normalized_2d_gaussian(X,Y,0.7, dX=5) #* np.exp(1j*X*7)
     # #create simulation domain
-    test_particle = rectangular_1_particle_domain((20,20),10,initial_psi)
+    test_particle = rectangular_1_particle_domain((20,20),5,initial_psi)
 
     # #potential
 
@@ -152,11 +151,12 @@ if __name__=='__main__':
     #V[np.isnan(V)] =np.nanmin(V)*1.5
 
 
-    # t, psi = test_particle.time_evolution(np.linspace(0,2000,1500), V)
+    t, psi = test_particle.time_evolution(np.linspace(0,2000,1500), V)
 
-    # np.save(file_name+"_psi.npy", psi)
-    # np.save(file_name+"_t.npy", t)
+    np.save(file_name+"_psi.npy", psi)
+    np.save(file_name+"_t.npy", t)
 
+    print("Visualizing")
     psi = np.load(file_name+"_psi.npy")
     t = np.load(file_name+"_t.npy")
     momentum = test_particle.momentum_space(psi)
