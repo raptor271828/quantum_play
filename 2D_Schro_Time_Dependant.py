@@ -141,13 +141,13 @@ if __name__=='__main__':
 
 
     def initial_psi(X,Y):
-        return normalized_2d_gaussian(X,Y,0.7, dX=5) #* np.exp(1j*X*7)
+        return normalized_2d_gaussian(X,Y,0.7, dX=4) * np.exp(1j*Y*4)
     # #create simulation domain
-    test_particle = rectangular_1_particle_domain((20,20),5,initial_psi)
+    test_particle = rectangular_1_particle_domain((25,25),100,initial_psi)
 
     # #potential
 
-    V = normalized_2d_gaussian(test_particle.X,test_particle.Y, 5)*-20
+    V = normalized_2d_gaussian(test_particle.X,test_particle.Y, 6.25)*-70
     #V[np.isnan(V)] =np.nanmin(V)*1.5
 
 
