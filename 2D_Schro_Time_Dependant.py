@@ -15,8 +15,8 @@ class rectangular_1_particle_domain():
 
         ###initialize Real space ###
         self.width = size[0]
-
         self.height = size[1]
+        self.resolution = resolution
 
         self.num_X = np.floor(self.width*resolution)
         self.X = np.linspace(-self.width/2, self.width/2, self.num_X).reshape((-1,1))
@@ -144,7 +144,7 @@ if __name__=='__main__':
     def initial_psi(X,Y):
         return normalized_2d_gaussian(X,Y,0.7, dX=5) #* np.exp(1j*X*7)
     # #create simulation domain
-    test_particle = rectangular_1_particle_domain((20,20),5,initial_psi)
+    test_particle = rectangular_1_particle_domain((20,20),10,initial_psi)
 
     # #potential
 
@@ -152,7 +152,7 @@ if __name__=='__main__':
     #V[np.isnan(V)] =np.nanmin(V)*1.5
 
 
-    # t, psi = test_particle.time_evolution(np.linspace(0,1000,1000), V)
+    # t, psi = test_particle.time_evolution(np.linspace(0,2000,1500), V)
 
     # np.save(file_name+"_psi.npy", psi)
     # np.save(file_name+"_t.npy", t)
@@ -171,41 +171,40 @@ if __name__=='__main__':
     ###prep for animating
     cyclic_cmap = create_cmap_from_csv("../CET_colormaps/", "CET-C6")
 
-    fig, (ax_pos, ax_mom) = plt.subplots(1,2)
-    fig.patch.set_color("Black")
+
+    fig, (ax_pos,ax_mom) = plt.subplots(1,2, figsize=(test_particle.width*2,test_particle.height), frameon=False)
+    plt.subplots_adjust(left=0, right=1, top=1, bottom=0, wspace=0, hspace=0)
 
 
 
     ####create images for animation###
+    ax_pos.set_axis_off()
     ax_pos.imshow(np.zeros(psi.shape[:2]+(3,)))
     im_pos = ax_pos.imshow(np.angle(psi[:,:,0]), vmin=-np.pi, vmax=np.pi, cmap=cyclic_cmap, alpha=np.abs(psi[:,:,0])/peak_psi_amplitude, interpolation='none')
     im_pos.set_animated(True)
 
-
+    ax_mom.set_axis_off()
     ax_mom.imshow(np.zeros(psi.shape[:2]+(3,)))
     im_mom = ax_mom.imshow(np.angle(momentum[:,:,0]), vmin=-np.pi, vmax=np.pi,cmap=cyclic_cmap, alpha=np.abs(momentum[:,:,0])/peak_mom_amplitude, interpolation='none')
     im_mom.set_animated(True)
 
-    axis_to_data = ax_mom.transAxes + ax_mom.transData.inverted()
-    half_x, half_y = axis_to_data.transform((0.5,0.5))
-
-    ax_mom.axhline((half_x), linestyle=":", color='#131313', zorder=0)
-    ax_mom.axvline((half_y), linestyle=":", color='#131313', zorder=0)
-
-
     ##### animate!!!!
     def update(frame):
-        title = ax_pos.set_title(f"{frame}")
+        #title = ax_pos.set_title(f"{frame}")
         im_pos.set_array(np.angle(psi[:,:,frame]))
         im_pos.set_alpha(np.abs(psi[:,:,frame])/np.abs(psi[:,:,frame]).max().max())
 
         im_mom.set_array(np.angle(momentum[:,:,frame]))
         im_mom.set_alpha(np.abs(momentum[:,:,frame])/np.abs(momentum[:,:,frame]).max().max())
-        fig.savefig("./output/"+file_name+f"{frame:05d}"+".png")
-        return [title,im_pos, im_mom]
 
-    ani = animation.FuncAnimation(fig=fig, func=update, frames=t.shape[0], interval=10)
+        fig.savefig("./output/"+file_name+f"{frame:05d}"+".png", bbox_inches='tight', pad_inches=0, dpi=test_particle.resolution)
+        return [im_pos, im_mom]
+
+    for i in range(t.shape[0]):
+        update(i)
+
+    #ani = animation.FuncAnimation(fig=fig, func=update, frames=t.shape[0], interval=10)
 
     ##output
-    ani.save(filename="./"+file_name+"high_res"+".mp4", writer="ffmpeg", fps=30, extra_args=['-vcodec', 'libx264', '-crf', '9'])
+    #ani.save(filename="./"+file_name+".avi", writer="ffmpeg", fps=30, extra_args=['-vcodec', 'ffv1'])
     plt.show()
