@@ -98,9 +98,11 @@ class rectangular_1_particle_domain():
     def time_evolution(self, time_array, V, static_V = True):
         if static_V:
             def func_for_ode_solver(t,y):
+                print(f"fraction_complete: {t/time_array.max()}")
                 return self.d_psi_dt(y.reshape(self.num_X,self.num_Y, order='C'), V).reshape(-1, order='C')
         else:
             def func_for_ode_solver(t,y):
+                print(f"fraction_complete: {t/time_array.max()}")
                 t_index = np.argmin(np.abs(time_array-t))
                 return self.d_psi_dt(y.reshape((self.num_X,self.num_Y), order='C'), V[:,:,t_index]).reshape(-1, order='C')
 
@@ -141,9 +143,9 @@ if __name__=='__main__':
 
 
     def initial_psi(X,Y):
-        return normalized_2d_gaussian(X,Y,0.7, dX=4) * np.exp(1j*Y*4)
+        return normalized_2d_gaussian(X,Y,0.8, dX=4) * np.exp(1j*Y*5)
     # #create simulation domain
-    test_particle = rectangular_1_particle_domain((25,25),100,initial_psi)
+    test_particle = rectangular_1_particle_domain((25,25),30,initial_psi)
 
     # #potential
 
