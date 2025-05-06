@@ -8,3 +8,29 @@ bound states: find eignenfunctions with 2D 1-particle solver, born oppenhiemer a
 2d alternative to nuclear well?
 
 Angular momentum operator
+
+Gauss_Well_Angular_High_Res:
+    def initial_psi(X,Y):
+        return normalized_2d_gaussian(X,Y,0.8, dX=4) * np.exp(1j*Y*5)
+    # #create simulation domain
+    test_particle = rectangular_1_particle_domain((25,25),30,initial_psi)
+
+    # #potential
+
+    V = normalized_2d_gaussian(test_particle.X,test_particle.Y, 6.25)*-70
+    #V[np.isnan(V)] =np.nanmin(V)*1.5
+
+
+    t, psi = test_particle.time_evolution(np.linspace(0,2000,1500), V)
+
+Gauss_Well_High_Res
+
+    def initial_psi(X,Y):
+        return normalized_2d_gaussian(X,Y,0.5, dX=8) #* np.exp(1j*Y*4)
+    # #create simulation domain
+    test_particle = rectangular_1_particle_domain((25,25),30,initial_psi)
+
+    # #potential
+
+    V = normalized_2d_gaussian(test_particle.X,test_particle.Y, 6.25)*-70
+    #V[np.isnan(V)] =np.nanmin(V)*1.5
