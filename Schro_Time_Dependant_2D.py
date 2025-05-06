@@ -85,13 +85,14 @@ class rectangular_1_particle_domain():
 
     #         return np.fft.ifft2(self.G_sqr[:,:,np.newaxis]*np.fft.fft2(psi, axes=(0,1)),axes=(0,1))
 
-
+    def H(self, psi, V):
+        return (-h_bar**2 * self.laplacian(psi) / (2*m) + V * psi)
 
 #
     ###hey! its the schrodinger equation!
     def d_psi_dt(self, psi, V): # -i * hbar**2/2m * laplacian (psi) * V * psi, assiming real_space_psi
         #print(np.abs(-1j * h_bar**2 * self.laplacian(psi) / (2*m) + V * psi).max())
-        return -1j * (-h_bar**2 * self.laplacian(psi) / (2*m) + V * psi) / h_bar
+        return -1j * self.H(psi,V) / h_bar
 
     ###wrapper for np.integrate.solveIVP
     def time_evolution(self, initial_psi, time_array, V, static_V = True):
@@ -130,8 +131,8 @@ def create_cmap_from_csv(directory, cmap_name, n_bin=0):
         n_bin = colors.shape[0]
     new_cmap = LinearSegmentedColormap.from_list(cmap_name, colorsRGBa, N=n_bin)
     return new_cmap
-
-def plot_and_save_psi_vs_t(psi_list, t, file_path, cmap='CET-C6', max_normalization=False):
+#currently only square domains
+def plot_and_save_psi_vs_t(psi_list, t, file_path, cmap='CET-C6', max_normalization=False, upscale=4):
 
     cyclic_cmap = create_cmap_from_csv("../CET_colormaps/", cmap)
 
@@ -162,7 +163,7 @@ def plot_and_save_psi_vs_t(psi_list, t, file_path, cmap='CET-C6', max_normalizat
                 im.set_alpha(np.abs(psi[:,:,frame_num])/np.abs(psi[:,:,frame_num]).max().max())
 
 
-        fig.savefig(file_path+f"{frame_num:05d}"+".png", bbox_inches='tight', pad_inches=0, dpi=psi_list[0].shape[0])
+        fig.savefig(file_path+cmap+f"{frame_num:05d}"+".png", bbox_inches='tight', pad_inches=0, dpi=psi_list[0].shape[0]*upscale)
 
 
 class eigenvector_finder:
