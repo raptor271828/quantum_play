@@ -17,7 +17,9 @@ class eigenvector_finder:
 
         eigenvectors, eigenvalues = self.getpsi(W)
 
-        return eigenvectors, eigenvalues
+        sort_indices = np.argsort(eigenvalues)
+
+        return eigenvectors[:,sort_indices], eigenvalues[:,sort_indices]
 
 
     def U(self, W):
