@@ -67,7 +67,7 @@ class rectangular_1_particle_domain():
         else:
             raise ValueError("psi shape is not 2d or 2d+time")
 
-    def momentum_space(self, psi):
+    def momentum_space(self, psi): #output is shifted to cetner 0,0 in the images
 
         if (len(psi.shape) == 3) & (psi.shape[:2] == (self.num_X, self.num_Y)): #3rd dim is time
             fft_out = np.fft.fft2(psi[self.GX_sort_indices,self.GY_sort_indices,:], axes=(0,1), norm='forward') #shifting psi needed to define origen at center of unit cell
@@ -80,13 +80,28 @@ class rectangular_1_particle_domain():
         else:
             raise ValueError("psi shape is not 2d or 2d+time")
 
-    # def momentum(self, psi):
-    #     if (len(psi.shape) == 3) & (psi.shape[:2] == (self.num_X, self.num_Y)): #3rd dim is time
+    def real_space(self, psi_p): #assuming 0->nyquist-.negative nyquist->0
+        if (len(psi_p.shape) == 3) & (psi_p.shape[:2] == (self.num_X, self.num_Y)): #3rd dim is time
+            ifft_out = np.fft.ifft2(psi_p, axes=(0,1), norm='forward') #shifting psi needed to define origen at center of unit cell
+            return ifft_out[self.GX_sort_indices,self.GY_sort_indices,:]
 
-    #         return np.fft.ifft2(self.G_sqr[:,:,np.newaxis]*np.fft.fft2(psi, axes=(0,1)),axes=(0,1))
+        elif (len(psi_p.shape) == 2) & (psi_p.shape[:2] == (self.num_X, self.num_Y)): # no time dim
+            ifft_out = np.fft.ifft2(psi_p, axes=(0,1), norm='forward')
+            return ifft_out[self.GX_sort_indices,self.GY_sort_indices]#[self.GX_sort_indices,self.GY_sort_indices]
+
+        else:
+            raise ValueError("psi shape is not 2d or 2d+time")
 
     def H(self, psi, V):
-        return (-h_bar**2 * self.laplacian(psi) / (2*m) + V * psi)
+        if (len(psi.shape) == 3) & (psi.shape[:2] == (self.num_X, self.num_Y)): #3rd dim is time
+
+            return (-h_bar**2 * self.laplacian(psi) / (2*m) + V[:,:,np.newaxis] * psi)
+
+        elif (len(psi.shape) == 2) & (psi.shape[:2] == (self.num_X, self.num_Y)): # no time dim
+
+            return (-h_bar**2 * self.laplacian(psi) / (2*m) + V * psi)
+        else:
+            raise ValueError("psi shape is not 2d or 2d+time")
 
 #
     ###hey! its the schrodinger equation!
@@ -141,6 +156,9 @@ def plot_and_save_psi_vs_t(psi_list, t, file_path, cmap='CET-C6', max_normalizat
     fig, ax_list = plt.subplots(1,num_figs, figsize=(num_figs,1), frameon=False)
     plt.subplots_adjust(left=0, right=1, top=1, bottom=0, wspace=0, hspace=0)
 
+    if num_figs ==1:
+        ax_list = (ax_list,)
+
     psi_max_values = []
     im_list = []
     for ax, psi in zip(ax_list, psi_list):
@@ -166,18 +184,6 @@ def plot_and_save_psi_vs_t(psi_list, t, file_path, cmap='CET-C6', max_normalizat
         fig.savefig(file_path+cmap+f"{frame_num:05d}"+".png", bbox_inches='tight', pad_inches=0, dpi=psi_list[0].shape[0]*upscale)
 
 
-class eigenvector_finder:
-    def __init__(self, O, H) -> None:
-        self.O = O
-        self.H = H
-
-    def U(self, W):
-        return W.T.conj(self.O(W))
-
-    def getgrad(self, W):
-        U_inv = np.linalg.inv(self.U(W))
-        H_cached = self.H(W)
-        return (H_cached - self.O(W@U_inv@W.T.conj()@H_cached))@ U_inv
 
 
 

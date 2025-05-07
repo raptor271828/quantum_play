@@ -33,7 +33,7 @@ if minimizing:
         return O_for_minimizer(H)
 
     finder = eigens.eigenvector_finder(O_for_minimizer,H_for_minimizer,domain.num_X*domain.num_Y ,5)# K=K_for_minimizer)
-    eigenvectors, eigenvalues = finder.find_eignens(40,0,0, pc=False)
+    eigenvectors, eigenvalues = finder.find_eignens(10,10,0, pc=False)
 
     np.save(out_path+file_prefix+"_eigenvectors.npy", eigenvectors)
     np.save(out_path+file_prefix+"_eigenvalues.npy", eigenvalues)

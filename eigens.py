@@ -13,13 +13,13 @@ class eigenvector_finder:
 
     def find_eignens(self, Nit_lm, Nit_cg, conv_crit_cg, pc=False):
         W, _ = self.lm(self.W_initial,Nit_lm, pc=pc)
-        #W, _ = self.cg(W,Nit_cg, conv_criterion=conv_crit_cg)
+        W, _ = self.cg(W,Nit_cg, conv_criterion=conv_crit_cg)
 
         eigenvectors, eigenvalues = self.getpsi(W)
 
         sort_indices = np.argsort(eigenvalues)
 
-        return eigenvectors[:,sort_indices], eigenvalues[:,sort_indices]
+        return eigenvectors[:,sort_indices], eigenvalues[sort_indices]
 
 
     def U(self, W):
