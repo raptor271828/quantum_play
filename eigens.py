@@ -50,7 +50,7 @@ class eigenvector_finder:
     def cg(self, W, Nit, conv_criterion=0):
         Elist=np.zeros(Nit+1,dtype=complex)
         Elist[0]=self.getexpect(W)
-        alpha_trial=0.00003
+        alpha_trial=0.000008
         d = 0
         g = 0
         for i in range(Nit):
@@ -63,11 +63,13 @@ class eigenvector_finder:
                 d=-g
             else:
                 beta = self.dot((g - g_old),g)/(self.dot(g_old, g_old))
+                if beta < 0:
+                    beta = 0
                 d=-g + beta * d_old
 
-            if i != 0 :
-                print(f"linmin test{self.dot(g,d_old)*(self.dot(g,g) * self.dot(d_old,d_old))**-0.5}")
-                print(f" cg test{self.dot(g,g_old)*(self.dot(g,g) * self.dot(g_old,g_old))**-0.5}")
+            # if i != 0 :
+            #     print(f"linmin test{self.dot(g,d_old)*(self.dot(g,g) * self.dot(d_old,d_old))**-0.5}")
+            #     print(f" cg test{self.dot(g,g_old)*(self.dot(g,g) * self.dot(g_old,g_old))**-0.5}")
 
             g_t = self.getgrad(W_old+alpha_trial*d)
             best_alpha = alpha_trial * self.dot(g,d)/(self.dot((g-g_t),d))
@@ -80,7 +82,7 @@ class eigenvector_finder:
             print(f"\r cg: iter {i/Nit:02f}, conv: {(Elist[i+1]-Elist[i])}, expectation:{Elist[i+1]}", end="")
 
 
-            if (-(Elist[i+1]-Elist[i])< conv_criterion) & ((Elist[i+1]-Elist[i]) < 0):
+            if (-(Elist[i+1]-Elist[i])< conv_criterion) | ((Elist[i+1]-Elist[i]) > 0):
                 Elist=Elist[:i+2]
                 break
         return W, Elist
@@ -101,8 +103,8 @@ class eigenvector_finder:
             else:
                 d=-g
 
-            if i != 0 :
-                print(f"linmin test{self.dot(g,d_old)/(self.dot(g,g) * self.dot(d_old,d_old))}")
+            # if i != 0 :
+            #     print(f"linmin test{self.dot(g,d_old)/(self.dot(g,g) * self.dot(d_old,d_old))}")
 
             g_t = self.getgrad(W_old+alpha_trial*d)
             best_alpha = alpha_trial * self.dot(g,d)/(self.dot((g-g_t),d))
