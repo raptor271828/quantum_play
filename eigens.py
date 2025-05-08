@@ -26,11 +26,11 @@ class eigenvector_finder:
         return W.T.conj()@self.O(W)
 
     def dot(self, W1,W2):
-        return (W1.conj()*W2).sum()
+        return np.real(W1.conj()*W2).sum()
 
     def getexpect(self, W):
-
-        return self.dot(W,self.H(W@np.linalg.inv(sp.sqrtm(self.U(W)))))
+            U_sqrt_inv = np.linalg.inv(sp.sqrtm(self.U(W)))
+            return self.dot(W@U_sqrt_inv,self.H(W@U_sqrt_inv))
 
     def getgrad(self, W):
         U_inv = np.linalg.inv(self.U(W))
@@ -50,7 +50,7 @@ class eigenvector_finder:
     def cg(self, W, Nit, conv_criterion=0):
         Elist=np.zeros(Nit+1,dtype=complex)
         Elist[0]=self.getexpect(W)
-        alpha_trial=0.000008
+        alpha_trial=0.00005
         d = 0
         g = 0
         for i in range(Nit):
@@ -62,8 +62,9 @@ class eigenvector_finder:
             if i == 0 :
                 d=-g
             else:
-                beta = self.dot((g - g_old),g)/(self.dot(g_old, g_old))
+                beta = self.dot((g - g_old),g)/g_old_mag
                 if beta < 0:
+                    print("eep!")
                     beta = 0
                 d=-g + beta * d_old
 
@@ -79,10 +80,11 @@ class eigenvector_finder:
             #printProgressBar(i,Nit+1,suffix=f"Complete E={getE(W)}")
             Elist[i+1]=self.getexpect(W)
 
-            print(f"\r cg: iter {i/Nit:02f}, conv: {(Elist[i+1]-Elist[i])}, expectation:{Elist[i+1]}", end="")
+            g_old_mag = self.dot(g,g)
+            print(f"\r cg: iter {i/Nit:02f}, conv: {(Elist[i+1]-Elist[i])}, expectation:{Elist[i+1]}, grad:{g_old_mag}", end="")
 
 
-            if (-(Elist[i+1]-Elist[i])< conv_criterion) | ((Elist[i+1]-Elist[i]) > 0):
+            if g_old_mag < conv_criterion:
                 Elist=Elist[:i+2]
                 break
         return W, Elist
@@ -91,7 +93,7 @@ class eigenvector_finder:
     def lm(self, W,Nit, conv_criterion=0, pc=False):
         Elist=np.zeros(Nit+1,dtype=complex)
         Elist[0]=self.getexpect(W)
-        alpha_trial=0.00003
+        alpha_trial=0.0001
         d = 0
         for i in range(Nit):
             W_old = W
