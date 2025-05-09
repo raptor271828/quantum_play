@@ -1,5 +1,7 @@
 import numpy as np
 import scipy.linalg as sp
+import Schro_Time_Dependant_2D as schro
+import matplotlib.pyplot as plt
 #find eignenvectors via variational method (eignevalues must be bounded from below)
 
 class eigenvector_finder:
@@ -11,16 +13,15 @@ class eigenvector_finder:
         self.W_initial=np.random.rand(num_basis, num_eigens)+1j*np.random.rand(num_basis, num_eigens)
         self.W_initial=self.W_initial@np.linalg.inv(sp.sqrtm(self.U(self.W_initial))) #orthonormalize
 
-    def find_eignens(self, Nit_lm, Nit_cg, conv_crit_cg, pc=False):
-        W, _ = self.lm(self.W_initial,Nit_lm, pc=pc)
-        W, _ = self.cg(W,Nit_cg, conv_criterion=conv_crit_cg)
+    def find_eignens(self, Nit_lm, Nit_cg, conv_crit_cg, plot_out=None, pc=False):
+        W, _ = self.lm(self.W_initial,Nit_lm, pc=pc, plot_out=plot_out)
+        W, _ = self.cg(W,Nit_cg, conv_criterion=conv_crit_cg, plot_out=plot_out)
 
         eigenvectors, eigenvalues = self.getpsi(W)
 
-        sort_indices = np.argsort(eigenvalues)
 
-        return eigenvectors[:,sort_indices], eigenvalues[sort_indices]
 
+        return eigenvectors, eigenvalues
 
     def U(self, W):
         return W.T.conj()@self.O(W)
@@ -45,14 +46,20 @@ class eigenvector_finder:
         epsilon,D=np.linalg.eig(mu) # This line does not need changing
         epsilon=np.real(epsilon) # Does not need change, removing numerical round off in imaginary component
         Psi= Y@D
-        return Psi,epsilon # Does not need to be changed
 
-    def cg(self, W, Nit, conv_criterion=0):
+        sort_indices = np.argsort(epsilon)
+
+        return Psi[:,sort_indices],epsilon[sort_indices] # Does not need to be changed
+
+    def cg(self, W, Nit, conv_criterion=0, plot_out=None):
         Elist=np.zeros(Nit+1,dtype=complex)
         Elist[0]=self.getexpect(W)
         alpha_trial=0.00005
         d = 0
         g = 0
+        if plot_out != None:
+            self.plot_and_save_minimization(W, plot_out+f"_cg_iter{0:04d}"+".png")
+
         for i in range(Nit):
             W_old = W
             d_old = d
@@ -83,6 +90,10 @@ class eigenvector_finder:
             g_old_mag = self.dot(g,g)
             print(f"\r cg: iter {i/Nit:02f}, conv: {(Elist[i+1]-Elist[i])}, expectation:{Elist[i+1]}, grad:{g_old_mag}", end="")
 
+            if plot_out != None:
+                self.plot_and_save_minimization(W, plot_out+f"_cg_iter{i+1:04d}"+".png", form="psi")
+                self.plot_and_save_minimization(W, plot_out+f"_cg_iter{i+1:04d}"+".png", form="Y")
+
 
             if g_old_mag < conv_criterion:
                 Elist=Elist[:i+2]
@@ -90,7 +101,7 @@ class eigenvector_finder:
         return W, Elist
 
 
-    def lm(self, W,Nit, conv_criterion=0, pc=False):
+    def lm(self, W,Nit, conv_criterion=0, pc=False, plot_out=None):
         Elist=np.zeros(Nit+1,dtype=complex)
         Elist[0]=self.getexpect(W)
         alpha_trial=0.0001
@@ -118,8 +129,53 @@ class eigenvector_finder:
 
             print(f"\r lm: iter {i/Nit:02f}, conv: {(Elist[i+1]-Elist[i])}, expectation:{Elist[i+1]}", end="")
 
+            if plot_out != None:
+                self.plot_and_save_minimization(W, plot_out+f"_lm_iter{i+1:04d}"+".png")
+
             if (-(Elist[i+1]-Elist[i]) < conv_criterion) & ((Elist[i+1]-Elist[i])< 0):
                 Elist=Elist[:i+2]
                 break
             #printProgressBar(i+1,Nit,suffix=f"Complete")
         return W, Elist
+
+    #assumes square domain
+    def plot_and_save_minimization(self, W, file_path, cmap='CET-C6',upscale=3, form="psi"):
+        cyclic_cmap = schro.create_cmap_from_csv("../CET_colormaps/", cmap)
+
+        width = int(W.shape[0]**0.5)
+
+        if form=="psi":
+            wavefunctions, eigenvalues = self.getpsi(W)
+        else:
+            wavefunctions = W@np.linalg.inv(sp.sqrtm(self.U(W)))
+
+        num_eigens = W.shape[-1]
+
+        if num_eigens%2 == 0:
+            fig, ax_list = plt.subplots(2,num_eigens//2, figsize=(num_eigens//2,2), frameon=False)
+            ax_list = ax_list.flatten()
+        elif num_eigens%3 == 0:
+            fig, ax_list= plt.subplots(3, num_eigens//3, figsize=(num_eigens//3,3), frameon=False)
+            ax_list = ax_list.flatten()
+        elif num_eigens%4 == 0:
+            fig, ax_list= plt.subplots(4, num_eigens//4, figsize=(num_eigens//4,4), frameon=False)
+            ax_list = ax_list.flatten()
+        else:
+            fig, ax_list = plt.subplots(1,num_eigens, figsize=(num_eigens,1), frameon=False)
+
+        plt.subplots_adjust(left=0, right=1, top=1, bottom=0, wspace=0, hspace=0)
+
+        if num_eigens ==1:
+            ax_list = (ax_list,)
+
+        psi_max_values = []
+        for i, ax in enumerate(ax_list):
+                #calculate global max (with repect to time) of max_normalization is on
+
+            psi = wavefunctions[:,i].reshape((width, width))
+
+            ax.set_axis_off()
+            ax.imshow(np.zeros(psi.shape+(3,)))
+            im = ax.imshow(np.angle(psi), vmin=-np.pi, vmax=np.pi, cmap=cyclic_cmap, alpha=np.abs(psi[:,:])/np.abs(psi[:,:]).max().max(), interpolation='none')
+
+        fig.savefig(file_path+"_"+form+"_"+cmap+".png", bbox_inches='tight', pad_inches=0, dpi=width*upscale)

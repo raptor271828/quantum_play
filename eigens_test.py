@@ -13,7 +13,7 @@ print(V)
 psi = np.load(in_path+file_prefix+"_psi.npy")
 #t = np.load(out_path+file_prefix+"_t.npy")
 domain = schro.rectangular_1_particle_domain((domain_params[0],domain_params[1]),domain_params[2])
-domain.m = 0.25
+domain.m = 0.9
 
 
 
@@ -32,8 +32,8 @@ if minimizing:
 
         return O_for_minimizer(H)
 
-    finder = eigens.eigenvector_finder(O_for_minimizer,H_for_minimizer,domain.num_X*domain.num_Y ,100)# K=K_for_minimizer)
-    eigenvectors, eigenvalues = finder.find_eignens(5,200,1e-6, pc=False)
+    finder = eigens.eigenvector_finder(O_for_minimizer,H_for_minimizer,domain.num_X*domain.num_Y ,9)# K=K_for_minimizer)
+    eigenvectors, eigenvalues = finder.find_eignens(0,300,1e-6, pc=False, plot_out=out_path+file_prefix)
 
     np.save(out_path+file_prefix+"_eigenvectors.npy", eigenvectors)
     np.save(out_path+file_prefix+"_eigenvalues.npy", eigenvalues)
@@ -51,4 +51,4 @@ eigenvectors_raveled = eigenvectors.reshape((domain.num_X, domain.num_Y, -1))
     #     eignenvectors_raveled_list.append(eigenvectors_raveled[:,:,i, np.newaxis]) #extra unused dimension for
     #
 print(eigenvectors_raveled.shape)
-schro.plot_and_save_psi_vs_t((eigenvectors_raveled,), np.ones(eigenvectors.shape[-1]), "./eigens/vector")
+schro.plot_and_save_psi_vs_t((eigenvectors_raveled,), np.ones(eigenvectors.shape[-1]), out_path+file_prefix)
