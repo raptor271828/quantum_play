@@ -5,12 +5,14 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.colors import LinearSegmentedColormap
 
-h_bar = 1
-m = 1
+
 
 #x as dim 1, y as dim 2, periodic (so plane wave basis can be used)
 class rectangular_1_particle_domain():
-    def __init__(self, size, resolution):
+    def __init__(self, size, resolution, h_bar=1., m=1.):
+        ##
+        self.h_bar = h_bar
+        self.m = m
 
         ###initialize Real space ###
         self.width = size[0]
@@ -95,11 +97,11 @@ class rectangular_1_particle_domain():
     def H(self, psi, V):
         if (len(psi.shape) == 3) & (psi.shape[:2] == (self.num_X, self.num_Y)): #3rd dim is time
 
-            return (-h_bar**2 * self.laplacian(psi) / (2*m) + V[:,:,np.newaxis] * psi)
+            return (-self.h_bar**2 * self.laplacian(psi) / (2*self.m) + V[:,:,np.newaxis] * psi)
 
         elif (len(psi.shape) == 2) & (psi.shape[:2] == (self.num_X, self.num_Y)): # no time dim
 
-            return (-h_bar**2 * self.laplacian(psi) / (2*m) + V * psi)
+            return (-self.h_bar**2 * self.laplacian(psi) / (2*self.m) + V * psi)
         else:
             raise ValueError("psi shape is not 2d or 2d+time")
 
@@ -107,7 +109,7 @@ class rectangular_1_particle_domain():
     ###hey! its the schrodinger equation!
     def d_psi_dt(self, psi, V): # -i * hbar**2/2m * laplacian (psi) * V * psi, assiming real_space_psi
         #print(np.abs(-1j * h_bar**2 * self.laplacian(psi) / (2*m) + V * psi).max())
-        return -1j * self.H(psi,V) / h_bar
+        return -1j * self.H(psi,V) / self.h_bar
 
     ###wrapper for np.integrate.solveIVP
     def time_evolution(self, initial_psi, time_array, V, static_V = True):
