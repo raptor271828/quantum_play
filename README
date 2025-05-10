@@ -1,36 +1,24 @@
 hmmm what are we doing here
 
-i want to make a 2d schrodinger equation solver for unbound states to show time evolution
-    -FFT laplacian operator
+What Ive done:
+Shro_Time_Dpendant_2d
+has class 2d domain which gives a good frameowrk for real space 1 particle schroidnger wavefunctions and associated operators
 
-bound states: find eignenfunctions with 2D 1-particle solver, born oppenhiemer appoximation?
+test.py plays around with this!
+and dumps tons of output files in a directory called test
 
-2d alternative to nuclear well?
+eigens.py gives a basis set and hamiltonian independant eignfunction finder, but preconditioning is not yet implimented (i tried but failed >:( to do in momentum space, then switched to real space so i could use my other hamiltonian) has plotting utilities for animating the visualization process
 
-Angular momentum operator
-
-Gauss_Well_Angular_High_Res:
-    def initial_psi(X,Y):
-        return normalized_2d_gaussian(X,Y,0.8, dX=4) * np.exp(1j*Y*5)
-    # #create simulation domain
-    test_particle = rectangular_1_particle_domain((25,25),30,initial_psi)
-
-    # #potential
-
-    V = normalized_2d_gaussian(test_particle.X,test_particle.Y, 6.25)*-70
-    #V[np.isnan(V)] =np.nanmin(V)*1.5
+eignes_test loads domain parameters output from test.py then
 
 
-    t, psi = test_particle.time_evolution(np.linspace(0,2000,1500), V)
+TODO:
+auralize eigenfrequencies (make pretty noises)
 
-Gauss_Well_High_Res
+cleannn uppp
 
-    def initial_psi(X,Y):
-        return normalized_2d_gaussian(X,Y,0.5, dX=8) #* np.exp(1j*Y*4)
-    # #create simulation domain
-    test_particle = rectangular_1_particle_domain((25,25),30,initial_psi)
+time dependant hamiltonians??
 
-    # #potential
+barriers/mazes??
 
-    V = normalized_2d_gaussian(test_particle.X,test_particle.Y, 6.25)*-70
-    #V[np.isnan(V)] =np.nanmin(V)*1.5
+make interactable and real time...
