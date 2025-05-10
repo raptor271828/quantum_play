@@ -13,7 +13,7 @@ print(V)
 psi = np.load(in_path+file_prefix+"_psi.npy")
 #t = np.load(out_path+file_prefix+"_t.npy")
 domain = schro.rectangular_1_particle_domain((domain_params[0],domain_params[1]),domain_params[2])
-domain.m = 0.012
+domain.m = 0.11
 
 
 
