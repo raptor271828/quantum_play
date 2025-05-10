@@ -151,14 +151,17 @@ class eigenvector_finder:
 
         num_eigens = W.shape[-1]
 
-        if num_eigens%2 == 0:
+        if num_eigens%4 == 0:
+            fig, ax_list= plt.subplots(4, num_eigens//4, figsize=(num_eigens//4,4), frameon=False)
+            ax_list = ax_list.flatten()
+        elif num_eigens%5 == 0:
+            fig, ax_list = plt.subplots(5,num_eigens//5, figsize=(num_eigens//5,5), frameon=False)
+            ax_list = ax_list.flatten()
+        elif num_eigens%2 == 0:
             fig, ax_list = plt.subplots(2,num_eigens//2, figsize=(num_eigens//2,2), frameon=False)
             ax_list = ax_list.flatten()
         elif num_eigens%3 == 0:
             fig, ax_list= plt.subplots(3, num_eigens//3, figsize=(num_eigens//3,3), frameon=False)
-            ax_list = ax_list.flatten()
-        elif num_eigens%4 == 0:
-            fig, ax_list= plt.subplots(4, num_eigens//4, figsize=(num_eigens//4,4), frameon=False)
             ax_list = ax_list.flatten()
         else:
             fig, ax_list = plt.subplots(1,num_eigens, figsize=(num_eigens,1), frameon=False)
@@ -179,3 +182,4 @@ class eigenvector_finder:
             im = ax.imshow(np.angle(psi), vmin=-np.pi, vmax=np.pi, cmap=cyclic_cmap, alpha=np.abs(psi[:,:])/np.abs(psi[:,:]).max().max(), interpolation='none')
 
         fig.savefig(file_path+"_"+form+"_"+cmap+".png", bbox_inches='tight', pad_inches=0, dpi=width*upscale)
+        plt.close()
