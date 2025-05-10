@@ -13,13 +13,12 @@ print(V)
 psi = np.load(in_path+file_prefix+"_psi.npy")
 #t = np.load(out_path+file_prefix+"_t.npy")
 domain = schro.rectangular_1_particle_domain((domain_params[0],domain_params[1]),domain_params[2])
-domain.m = 0.9
+domain.m = 0.012
 
 
 
 if minimizing:
-
-    #plane wave basis
+    #plane wave basis9
     def O_for_minimizer(W_unraveled):
         return W_unraveled #* domain.width * domain.height
 
@@ -32,8 +31,8 @@ if minimizing:
 
         return O_for_minimizer(H)
 
-    finder = eigens.eigenvector_finder(O_for_minimizer,H_for_minimizer,domain.num_X*domain.num_Y ,9)# K=K_for_minimizer)
-    eigenvectors, eigenvalues = finder.find_eignens(0,300,1e-6, pc=False, plot_out=out_path+file_prefix)
+    finder = eigens.eigenvector_finder(O_for_minimizer,H_for_minimizer,domain.num_X*domain.num_Y ,25)# K=K_for_minimizer)
+    eigenvectors, eigenvalues = finder.find_eignens(0,300,1e-14, pc=False, plot_out=out_path+file_prefix)
 
     np.save(out_path+file_prefix+"_eigenvectors.npy", eigenvectors)
     np.save(out_path+file_prefix+"_eigenvalues.npy", eigenvalues)
