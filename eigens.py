@@ -91,8 +91,8 @@ class eigenvector_finder:
             print(f"\r cg: iter {i/Nit:02f}, conv: {(Elist[i+1]-Elist[i])}, expectation:{Elist[i+1]}, grad:{g_old_mag}", end="")
 
             if plot_out != None:
-                self.plot_and_save_minimization(W, plot_out+f"_cg_iter{i+1:04d}"+".png", form="psi")
-                self.plot_and_save_minimization(W, plot_out+f"_cg_iter{i+1:04d}"+".png", form="Y")
+                self.plot_and_save_minimization(W, plot_out+f"_cg_iter{i+1:04d}", form="psi")
+                self.plot_and_save_minimization(W, plot_out+f"_cg_iter{i+1:04d}", form="Y")
 
 
             if g_old_mag < conv_criterion:
@@ -130,7 +130,8 @@ class eigenvector_finder:
             print(f"\r lm: iter {i/Nit:02f}, conv: {(Elist[i+1]-Elist[i])}, expectation:{Elist[i+1]}", end="")
 
             if plot_out != None:
-                self.plot_and_save_minimization(W, plot_out+f"_lm_iter{i+1:04d}"+".png")
+                self.plot_and_save_minimization(W, plot_out+f"_lm_iter{i+1:04d}", form="psi")
+                self.plot_and_save_minimization(W, plot_out+f"_lm_iter{i+1:04d}", form="Y")
 
             if (-(Elist[i+1]-Elist[i]) < conv_criterion) & ((Elist[i+1]-Elist[i])< 0):
                 Elist=Elist[:i+2]
@@ -151,7 +152,10 @@ class eigenvector_finder:
 
         num_eigens = W.shape[-1]
 
-        if num_eigens%4 == 0:
+        if num_eigens%8 == 0:
+            fig, ax_list= plt.subplots(8, num_eigens//8, figsize=(num_eigens//8,8), frameon=False)
+            ax_list = ax_list.flatten()
+        elif num_eigens%4 == 0:
             fig, ax_list= plt.subplots(4, num_eigens//4, figsize=(num_eigens//4,4), frameon=False)
             ax_list = ax_list.flatten()
         elif num_eigens%5 == 0:
@@ -183,3 +187,14 @@ class eigenvector_finder:
 
         fig.savefig(file_path+"_"+form+"_"+cmap+".png", bbox_inches='tight', pad_inches=0, dpi=width*upscale)
         plt.close()
+
+    def eigen_decomposition(self, psi, eigenvectors, prenormalize=True): #psi should be nx1, eigennvectors nxm
+        if prenormalize:
+            psi = self.normalize(psi)
+            eigenvectors = self.normalize(eigenvectors)
+        return eigenvectors.T.conj() @ self.O(psi)
+
+    def normalize(self, psis):
+        inner_product = (psis.conj()* self.O(psis)).sum(axis=0)
+        #print(inner_product)
+        return psis / np.abs(inner_product)[np.newaxis,:]**0.5
