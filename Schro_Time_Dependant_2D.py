@@ -1,10 +1,7 @@
 import numpy as np
-import scipy as scp
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 from matplotlib.colors import LinearSegmentedColormap
-
 
 
 #x as dim 1, y as dim 2, periodic (so plane wave basis can be used)
@@ -151,7 +148,7 @@ def create_cmap_from_csv(directory, cmap_name, n_bin=0):
 #currently only square domains
 def plot_and_save_psi_vs_t(psi_list, t, file_path, cmap='CET-C6', max_normalization=False, upscale=4):
 
-    cyclic_cmap = create_cmap_from_csv("../CET_colormaps/", cmap)
+    cyclic_cmap = create_cmap_from_csv("./CET_colormaps/", cmap)
 
     num_figs = len(psi_list) #psi is a tuple of 3-arrays
 
