@@ -141,7 +141,7 @@ class eigenvector_finder:
 
     #assumes square domain
     def plot_and_save_minimization(self, W, file_path, cmap='CET-C6',upscale=3, form="psi"):
-        cyclic_cmap = schro.create_cmap_from_csv("../CET_colormaps/", cmap)
+        cyclic_cmap = schro.create_cmap_from_csv("./CET_colormaps/", cmap)
 
         width = int(W.shape[0]**0.5)
 
